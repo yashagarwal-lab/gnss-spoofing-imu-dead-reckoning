@@ -108,7 +108,7 @@ $$\theta = \text{atan2}(\Delta v_E, \Delta v_N) \times \frac{180^\circ}{\pi} \pm
 2. **Compute Time Step**: Extract $\Delta t$ per IMU sample and pad the initial step.
 3. **Cumulative Numerical Integration**: Compute `vel_n` and `vel_e` as `np.cumsum(acc * dt)`.
 4. **Multi-Rate Interpolation**: Project 50 Hz IMU integrated velocities onto 5 Hz GNSS timestamps using 1D piecewise linear interpolation (`np.interp`).
-5. **Compute Raw Differential Velocity**: $\Delta v_N = v_{\text{GNSS}, N} - v_{\text{IMU\_interp}, N}$.
+5. **Compute Raw Differential Velocity**: $\Delta v_N = v_{\text{GNSS}, N} - v_{\text{IMU}, N}$.
 6. **First-Order Bias Detrending**:
    - Filter timestamps $t < 400\,\text{s}$.
    - Fit linear coefficients $(m_N, c_N)$ and $(m_E, c_E)$ using `np.polyfit(..., 1)`.
