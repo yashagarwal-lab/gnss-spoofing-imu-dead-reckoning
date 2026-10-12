@@ -2,8 +2,11 @@ import pandas as pd
 import numpy as np
 import math
 
-imu = pd.read_csv('imu.csv')
-gnss = pd.read_csv('gnss.csv')
+import os
+imu_f = "data/imu.csv" if os.path.exists("data/imu.csv") else "imu.csv"
+gnss_f = "data/gnss.csv" if os.path.exists("data/gnss.csv") else "gnss.csv"
+imu = pd.read_csv(imu_f)
+gnss = pd.read_csv(gnss_f)
 
 dt = np.zeros(len(imu))
 dt[1:] = imu['t_s'].values[1:] - imu['t_s'].values[:-1]
