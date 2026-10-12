@@ -25,7 +25,7 @@ The mission objective is to reconstruct ground truth, mathematically prove the d
 
 ## 2. Why Naive Approaches Fail
 
-1. **Direct GNSS Thresholding**: Standard flight-safety algorithms check acceleration jerk and velocity variance ($\Delta v / \Delta t$). Because the adversary applies a continuous, low-derivative ramp function, the pseudo-acceleration injected by the spoofer falls well within natural aerodynamic turbulence envelopes ($< 0.1\,\text{m/s}^2$). No single-sensor outlier detector triggers.
+1. **Direct GNSS Thresholding**: Standard flight-safety algorithms check acceleration jerk and velocity variance ($\Delta v / \Delta t$). Because the adversary applies a continuous, low-derivative ramp function, the pseudo-acceleration injected by the spoofer falls well within natural aerodynamic turbulence envelopes ($\lt 0.1\,\mathrm{m/s}^2$). No single-sensor outlier detector triggers.
 2. **Raw Difference of IMU and GNSS**: If one integrates raw IMU accelerations without calibration and directly subtracts GNSS velocity, the resulting difference diverges exponentially or linearly over time due to **uncalibrated accelerometer bias** ($b_a$). The drift from cheap MEMS sensors overwhelms the spoofing signature, hiding the attack onset under an ever-growing linear error slope.
 3. **Sampling Rate Mismatch**: GNSS arrives at 5 Hz ($T_s = 200\,\text{ms}$), while the IMU samples at 50 Hz ($T_s = 20\,\text{ms}$). A point-to-point subtraction without multi-rate temporal interpolation introduces severe aliasing and jitter.
 
@@ -60,9 +60,9 @@ The satellite receiver reports true velocity plus the adversary's injected error
 $$v_{\text{GNSS}}(t) = v_{\text{true}}(t) + v_{\text{spoof}}(t)$$
 
 where:
-- For $t < t_{\text{onset}}$: $v_{\text{spoof}}(t) = 0$
-- For $t_{\text{onset}} \le t < t_{\text{settle}}$: $v_{\text{spoof}}(t)$ ramps linearly or smoothly
-- For $t \ge t_{\text{settle}}$: $v_{\text{spoof}}(t) = v_{\text{plateau}}$ (constant injected drift vector)
+- For $t \lt t_{\mathrm{onset}}$: $v_{\mathrm{spoof}}(t) = 0$
+- For $t_{\mathrm{onset}} \le t \lt t_{\mathrm{settle}}$: $v_{\mathrm{spoof}}(t)$ ramps linearly or smoothly
+- For $t \ge t_{\mathrm{settle}}$: $v_{\mathrm{spoof}}(t) = v_{\mathrm{plateau}}$ (constant injected drift vector)
 
 ### 3.3 Residual Divergence & Bias Detrending
 
@@ -76,15 +76,15 @@ $$\Delta v_{\text{pre}}(t) = - b_a \cdot t - v(0)$$
 
 We fit a first-order polynomial via least-squares linear regression:
 
-$$\min_{m, c} \sum_{t_i < 400} \left(\Delta v(t_i) - (m \cdot t_i + c)\right)^2$$
+$$\min_{m, c} \sum_{t_i \lt 400} \left(\Delta v(t_i) - (m \cdot t_i + c)\right)^2$$
 
 Subtracting this baseline trend across the entire duration yields the **detrended velocity error**:
 
 $$\Delta v_{\text{detrended}}(t) = \Delta v(t) - (m \cdot t + c) \approx v_{\text{spoof}}(t)$$
 
 This cancels the accelerometer sensor bias completely:
-- For $t < t_{\text{onset}}$: $\Delta v_{\text{detrended}}(t) \approx 0$
-- For $t > t_{\text{settle}}$: $\Delta v_{\text{detrended}}(t)$ sits on a steady-state plateau $[v_{\text{plat}, N}, v_{\text{plat}, E}]$.
+- For $t \lt t_{\mathrm{onset}}$: $\Delta v_{\mathrm{detrended}}(t) \approx 0$
+- For $t \gt t_{\mathrm{settle}}$: $\Delta v_{\mathrm{detrended}}(t)$ sits on a steady-state plateau $[v_{\mathrm{plat}, N}, v_{\mathrm{plat}, E}]$.
 
 ### 3.4 Injected Bearing Extraction
 
@@ -110,7 +110,7 @@ $$\theta = \text{atan2}(\Delta v_E, \Delta v_N) \times \frac{180^\circ}{\pi} \pm
 4. **Multi-Rate Interpolation**: Project 50 Hz IMU integrated velocities onto 5 Hz GNSS timestamps using 1D piecewise linear interpolation (`np.interp`).
 5. **Compute Raw Differential Velocity**: $\Delta v_N = v_{\text{GNSS}, N} - v_{\text{IMU}, N}$.
 6. **First-Order Bias Detrending**:
-   - Filter timestamps $t < 400\,\text{s}$.
+   - Filter timestamps $t \lt 400\,\mathrm{s}$.
    - Fit linear coefficients $(m_N, c_N)$ and $(m_E, c_E)$ using `np.polyfit(..., 1)`.
    - Subtract evaluated polynomial trend from all timestamps.
 7. **Onset & Plateau Isolation**:
